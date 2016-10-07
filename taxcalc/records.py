@@ -122,7 +122,7 @@ class Records(object):
         'MARS', 'MIDR', 'RECID',
         'cmbtp_standard', 'cmbtp_itemizer',
         'age_head', 'age_spouse', 'blind_head', 'blind_spouse',
-        's006', 'filer'])
+        's006', 'filer', 'FDED', 'e11550', 'e11070', 'e11580'])
 
     # specify set of all Record variables that MUST be read by Tax-Calculator:
     MUST_READ_VARS = set(['RECID', 'MARS'])
@@ -164,7 +164,8 @@ class Records(object):
         '_iitax', '_refund',
         '_expanded_income', 'c07300', 'c07400',
         'c07600', 'c07240', 'c07260', 'c08000',
-        '_surtax', '_combined', 'personal_credit', 'fstax'])
+        '_surtax', '_combined', 'personal_credit', 'fstax',
+        'c00300', 'c00600', 'c00650'])
 
     INTEGER_CALCULATED_VARS = set(['_num', '_sep', '_exact'])
 

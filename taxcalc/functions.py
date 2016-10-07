@@ -142,10 +142,10 @@ def Adj(e03150, e03210, c03260,
 
 @iterate_jit(nopython=True)
 def CapGains(p23250, p22250, _sep, ALD_Investment_ec, ALD_StudentLoan_HC,
-             e00200, e00300, e00600, e00700, e00800,
+             e00200, e00300, e00600, e00700, e00800, c00300, e00650,
              e00900, e01100, e01200, e01400, e01700, e02000, e02100,
              e02300, e00400, e02400, c02900, e03210, e03230, e03240,
-             c01000, c23650, ymod, ymod1):
+             c01000, c23650, ymod, ymod1, c00650, c00600):
     """
     CapGains function: ...
     """
@@ -161,7 +161,10 @@ def CapGains(p23250, p22250, _sep, ALD_Investment_ec, ALD_StudentLoan_HC,
     ymod2 = e00400 + (0.50 * e02400) - c02900
     ymod3 = (1 - ALD_StudentLoan_HC) * e03210 + e03230 + e03240
     ymod = ymod1 + ymod2 + ymod3
-    return (c01000, c23650, ymod, ymod1)
+    c00300 = e00300
+    c00650 = e00650
+    c00600 = e00600
+    return (c01000, c23650, ymod, ymod1, c00300, c00600, c00650)
 
 
 @iterate_jit(nopython=True)
@@ -184,7 +187,7 @@ def SSBenefits(MARS, ymod, e02400, SS_thd50, SS_thd85,
 
 @iterate_jit(nopython=True)
 def AGI(ymod1, c02500, c02900, XTOT, MARS, _sep, DSI, _exact,
-        II_em, II_em_ps, II_prt,
+        II_em, II_em_ps, II_prt, n24,
         II_credit, II_credit_ps, II_credit_prt,
         c00100, pre_c04600, c04600, personal_credit):
     """
@@ -210,10 +213,15 @@ def AGI(ymod1, c02500, c02900, XTOT, MARS, _sep, DSI, _exact,
         dispc = min(1., max(0., dispc_numer / dispc_denom))
         c04600 = pre_c04600 * (1. - dispc)
     # calculate personal credit amount
-    personal_credit = II_credit[MARS - 1]
+    if MARS == 2:
+        dep_count = XTOT - 2
+    else:
+        dep_count = XTOT - 1
+    personal_credit = II_credit[MARS - 1] * dep_count
     # phase-out personal credit amount
     if II_credit_prt > 0. and c00100 > II_credit_ps[MARS - 1]:
-        credit_phaseout = II_credit_prt * (c00100 - II_credit_ps[MARS - 1])
+        thresh = II_credit_ps[MARS - 1] + n24 * 1000. / II_credit_prt
+        credit_phaseout = II_credit_prt * (c00100 - thresh)
         personal_credit = max(0., personal_credit - credit_phaseout)
     return (c00100, pre_c04600, c04600, personal_credit)
 
@@ -975,7 +983,7 @@ def EducationTaxCredit(e87530, MARS, c00100, _num, c05800,
 
 @iterate_jit(nopython=True)
 def NonrefundableCredits(c05800, e07240, e07260, e07300, e07400,
-                         e07600, p08000, prectc,
+                         e07600, p08000, prectc, personal_credit,
                          c07180, c07200, c07220, c07230, c07240,
                          c07260, c07300, c07400, c07600, c08000):
     """
@@ -1001,6 +1009,8 @@ def NonrefundableCredits(c05800, e07240, e07260, e07300, e07400,
     avail = avail - c07600
     c07200 = min(c07200, avail)  # Schedule R credit
     avail = avail - c07200
+    personal_credit = min(personal_credit, avail)
+    avail = avail - personal_credit
     c08000 = min(p08000, avail)  # Other credits
     avail = avail - c08000
     return (c07180, c07200, c07220, c07230, c07240,
@@ -1061,14 +1071,14 @@ def AdditionalCTC(n24, prectc, _earned, c07220, ptax_was,
 @iterate_jit(nopython=True)
 def C1040(c05800, c07180, c07200, c07220, c07230, c07240, c07260, c07300,
           c07400, c07600, c08000, e09700, e09800, e09900, ptax_sey, NIIT,
-          c07100, c09200):
+          c07100, c09200, personal_credit):
     """
     C1040 function computes total nonrefundable credits, c07100, and
                             income tax before refundable credits, c09200
     """
     # total (nonrefundable) credits (2015 Form 1040, line 55)
     c07100 = (c07180 + c07200 + c07600 + c07300 + c07400 + c07220 + c08000 +
-              c07230 + c07240 + c07260)
+              c07230 + c07240 + c07260 + personal_credit)
     # tax after credits (2015 Form 1040, line 56)
     nonrefundable_credits = max(0., c05800 - c07100)
     # tax before refundable credits
@@ -1080,13 +1090,13 @@ def C1040(c05800, c07180, c07200, c07220, c07230, c07240, c07260, c07300,
 
 @iterate_jit(nopython=True)
 def IITAX(c09200, c59660, c11070, c10960, _eitc,
-          _payrolltax, personal_credit, n24, _iitax, _combined, _refund,
+          _payrolltax, n24, _iitax, _combined, _refund,
           CTC_additional, CTC_additional_ps, CTC_additional_prt, c00100,
           _sep, MARS):
     """
     IITAX function: ...
     """
-    _refund = c59660 + c11070 + c10960 + personal_credit
+    _refund = c59660 + c11070 + c10960
     _iitax = c09200 - _refund
     _combined = _iitax + _payrolltax
     potential_add_CTC = max(0., min(_combined, CTC_additional * n24))
