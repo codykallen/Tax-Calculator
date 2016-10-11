@@ -16,6 +16,7 @@ import math
 import numpy as np
 from .decorators import iterate_jit, jit
 import copy
+import random
 
 
 @iterate_jit(nopython=True)
@@ -184,7 +185,7 @@ def SSBenefits(MARS, ymod, e02400, SS_thd50, SS_thd85,
 
 @iterate_jit(nopython=True)
 def AGI(ymod1, c02500, c02900, XTOT, MARS, _sep, DSI, _exact,
-        II_em, II_em_ps, II_prt,
+        II_em, II_em_ps, II_prt, n24,
         II_credit, II_credit_ps, II_credit_prt,
         c00100, pre_c04600, c04600, personal_credit):
     """
@@ -210,11 +211,13 @@ def AGI(ymod1, c02500, c02900, XTOT, MARS, _sep, DSI, _exact,
         dispc = min(1., max(0., dispc_numer / dispc_denom))
         c04600 = pre_c04600 * (1. - dispc)
     # calculate personal credit amount
-    personal_credit = II_credit[MARS - 1]
-    # phase-out personal credit amount
-    if II_credit_prt > 0. and c00100 > II_credit_ps[MARS - 1]:
-        credit_phaseout = II_credit_prt * (c00100 - II_credit_ps[MARS - 1])
-        personal_credit = max(0., personal_credit - credit_phaseout)
+    under5 = 0
+    if n24 > 0:
+        for i in range(n24):
+            #if random.random() < 0.273:
+            #    under5 += 1
+            under5 += 1
+    personal_credit = II_credit[MARS - 1] * under5
     return (c00100, pre_c04600, c04600, personal_credit)
 
 
@@ -820,12 +823,12 @@ def EITC(MARS, DSI, EIC, c00100, e00300, e00400, e00600, c01000,
 
 
 @iterate_jit(nopython=True)
-def ChildTaxCredit(n24, MARS, c00100, _exact,
+def ChildTaxCredit(n24, MARS, c00100, _exact, personal_credit,
                    CTC_c, CTC_ps, CTC_prt, prectc):
     """
     ChildTaxCredit function computes prectc amount
     """
-    prectc = CTC_c * n24
+    prectc = CTC_c * n24 + personal_credit
     modAGI = c00100  # no deducted foreign earned income to add
     if modAGI > CTC_ps[MARS - 1]:
         excess = modAGI - CTC_ps[MARS - 1]
@@ -1101,13 +1104,13 @@ def C1040(c05800, c07180, c07200, c07220, c07230, c07240, c07260, c07300,
 
 @iterate_jit(nopython=True)
 def IITAX(c09200, c59660, c11070, c10960, _eitc,
-          _payrolltax, personal_credit, n24, _iitax, _combined, _refund,
+          _payrolltax, n24, _iitax, _combined, _refund,
           CTC_additional, CTC_additional_ps, CTC_additional_prt, c00100,
           _sep, MARS):
     """
     IITAX function: ...
     """
-    _refund = c59660 + c11070 + c10960 + personal_credit
+    _refund = c59660 + c11070 + c10960
     _iitax = c09200 - _refund
     _combined = _iitax + _payrolltax
     potential_add_CTC = max(0., min(_combined, CTC_additional * n24))
