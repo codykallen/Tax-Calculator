@@ -214,9 +214,9 @@ def AGI(ymod1, c02500, c02900, XTOT, MARS, _sep, DSI, _exact,
     under5 = 0
     if n24 > 0:
         for i in range(n24):
-            #if random.random() < 0.273:
-            #    under5 += 1
-            under5 += 1
+            if random.random() < 0.273:
+                under5 += 1
+            #under5 += 1
     personal_credit = II_credit[MARS - 1] * under5
     return (c00100, pre_c04600, c04600, personal_credit)
 
@@ -1034,7 +1034,7 @@ def NonrefundableCredits(c05800, e07240, e07260, e07300, e07400,
 @iterate_jit(nopython=True)
 def AdditionalCTC(n24, prectc, _earned, c07220, ptax_was,
                   ACTC_Income_thd, ACTC_rt, ACTC_ChildNum,
-                  ALD_SelfEmploymentTax_HC,
+                  ALD_SelfEmploymentTax_HC, personal_credit,
                   c03260, e09800, c59660, e11200, c11070):
     """
     AdditionalCTC function calculates Additional (refundable) Child Tax Credit
