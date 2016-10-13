@@ -1061,7 +1061,10 @@ def AdditionalCTC(n24, prectc, _earned, c07220, ptax_was,
         # CTC not applied to tax
         c82880 = max(0., _earned)
         c82885 = max(0., c82880 - ACTC_Income_thd)
-        c82890 = ACTC_rt * c82885
+        if personal_credit > 0:
+            c82890 = 0.45 * c82885
+        else:
+            c82890 = ACTC_rt * c82885
     # Part II of 2005 Form 8812
     if n24 >= ACTC_ChildNum and c82890 < c82935:
         c82900 = 0.5 * ptax_was
