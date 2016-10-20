@@ -159,8 +159,8 @@ def CapGains(p23250, p22250, _sep, ALD_Investment_ec, ALD_StudentLoan_HC,
     c01000 = max((-3000. / _sep), c23650)
     # compute ymod* variables
     ymod1 = (e00200 + e00700 + e00800 + e00900 + e01400 + e01700 +
-             (1 - ALD_Investment_ec) * (e00300 + e00650) +
-             #e00300 + e00650 +
+             #(1 - ALD_Investment_ec) * (e00300 + e00650) +
+             e00300 + e00650 +
              c01000 + e01100 + e01200 + e00600 - e00650 +
              e02000 + e02100 + e02300)
     ymod2 = e00400 + (0.50 * e02400) - c02900
@@ -453,8 +453,8 @@ def TaxInc(c00100, _standard, c21060, c21040, c04600, c04800,
     TaxInc function: ...
     """
     c04800 = max(0., c00100 - max(c21060 - c21040, _standard) - c04600)
-    #inv_inc = e00300 + e00650 + max(p23250, 0)
-    #c04800 = max(0, c04800 - inv_inc * ALD_Investment_ec)
+    inv_inc = e00300 + e00650 + max(p23250, 0)
+    c04800 = max(0, c04800 - inv_inc * ALD_Investment_ec)
     return c04800
 
 
