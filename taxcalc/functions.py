@@ -291,7 +291,7 @@ def ItemDed(e17500, e18400, e18500,
             ID_Casualty_frt, ID_Casualty_hc, ID_Miscellaneous_frt,
             ID_Miscellaneous_hc, ID_Charity_crt_all, ID_Charity_crt_noncash,
             ID_prt, ID_crt, ID_StateLocalTax_hc, ID_Charity_frt,
-            ID_Charity_hc, ID_InterestPaid_hc, ID_RealEstate_hc):
+            ID_Charity_hc, ID_InterestPaid_hc, ID_RealEstate_hc, ID_cap):
     """
     ItemDed function: itemized deductions, Form 1040, Schedule A
 
@@ -388,6 +388,10 @@ def ItemDed(e17500, e18400, e18500,
     else:
         c21040 = 0.
         c04470 = c21060
+    cap = ID_cap
+    if MARS == 2:
+        cap = ID_cap * 2
+    c04470 = min(c04470, cap)
     return (c17000, c18300, c19200, c20500, c20800, c21040, c21060, c04470,
             c19700)
 
@@ -493,11 +497,11 @@ def StdDed(DSI, _earned, STD, age_head, age_spouse, STD_Aged,
 
 
 @iterate_jit(nopython=True)
-def TaxInc(c00100, _standard, c21060, c21040, c04600, c04800):
+def TaxInc(c00100, _standard, c21060, c21040, c04600, c04800, c04470):
     """
     TaxInc function: ...
     """
-    c04800 = max(0., c00100 - max(c21060 - c21040, _standard) - c04600)
+    c04800 = max(0., c00100 - max(c04470, _standard) - c04600)
     return c04800
 
 

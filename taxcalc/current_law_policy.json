@@ -365,9 +365,23 @@
         "col_var": "",
         "row_var": "FLPDYR",
         "row_label": ["2013"],
-        "cpi_inflated": false,
+        "cpi_inflated": true,
         "col_label": "",
         "value": [0.03]
+    },
+        
+    "_ID_cap": {
+        "long_name": "Cap on itemized deductions",
+        "description":"",
+        "irs_ref": "",
+        "notes": "",
+        "start_year": 2013,
+        "col_var": "",
+        "row_var": "FLPDYR",
+        "row_label": ["2013"],
+        "cpi_inflated": true,
+        "col_label": "",
+        "value": [1e99]
     },
 
     "_ID_Medical_frt": {
